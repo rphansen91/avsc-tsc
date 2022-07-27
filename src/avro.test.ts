@@ -11,8 +11,8 @@ describe('Avro', () => {
 
     constructor(base?: any) {
       super();
-      this.number = base?.number ?? null;
-      this.hash = base?.hash ?? null;
+      this.number = base?.number;
+      this.hash = base?.hash;
     }
 
     helper() {
@@ -46,16 +46,16 @@ describe('Avro', () => {
 
     @AvroSchema()
     class Transaction extends Avro {
-      @AvroField({ type: 'array', items: Log.schema })
+      @AvroField({ type: 'array', items: Log.schema }, [])
       logs: Log[];
 
       constructor(base?: any) {
         super();
-        this.logs = base?.logs ?? null;
+        this.logs = base?.logs ?? [];
       }
     }
 
-    expect(Transaction.fields).toEqual([{ name: 'logs', type: { type: 'array', items: Log.schema } }]);
+    expect(Transaction.fields).toEqual([{ name: 'logs', type: { type: 'array', items: Log.schema }, default: [] }]);
 
     const tx = new Transaction();
     const log = new Log();
@@ -82,6 +82,11 @@ describe('Avro', () => {
     const decoded = await Block.decode<Block>(encoded);
     expect(decoded).toEqual(block);
     expect(decoded.helper()).toEqual(10);
+  });
+
+  it('Should log the missing fields', async () => {
+    const block = new Block({ hash: '0x1010' });
+    await expect(() => block.encode()).rejects.toThrowError('Block has no value defined for "number"');
   });
 
   it('Should provide useful class errors', async () => {

@@ -7,6 +7,7 @@ const ERRORS = {
 };
 
 type FieldTypes = string | string[] | { type: 'array'; items: Schema };
+type Field = { name: string; type: FieldTypes; default?: any };
 
 export class Avro {
   static schema: Type;
@@ -29,7 +30,17 @@ export class Avro {
   async encode(): Promise<Buffer> {
     const ctor = this[CTOR] as typeof Avro;
     validateSchema(ctor.schema);
-    return ctor.schema.toBuffer(this);
+    try {
+      return ctor.schema.toBuffer(this);
+    } catch (err) {
+      const fields = (ctor as any)?.['schema']?.['_fieldsByName'] ?? {};
+      for (const field in fields) {
+        if (typeof (this as any)[field] === 'undefined') {
+          throw new Error(`${ctor.name} has no value defined for "${field}"`);
+        }
+      }
+      throw err;
+    }
   }
 }
 
@@ -44,11 +55,15 @@ export function AvroSchema({ name, namespace }: { name?: string; namespace?: str
   };
 }
 
-export function AvroField(type: FieldTypes) {
+export function AvroField(type: FieldTypes, defaultValue?: any) {
   return function (record: Avro, name: string) {
     const ctor = record[CTOR] as typeof Avro;
     if (!ctor.fields) ctor.fields = [];
-    ctor.fields.push({ name, type });
+    const field: Field = { name, type };
+    if (typeof defaultValue !== 'undefined') {
+      field.default = defaultValue;
+    }
+    ctor.fields.push(field);
   };
 }
 
