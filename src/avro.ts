@@ -1,4 +1,4 @@
-import { Type } from 'avsc';
+import { Type, Schema } from 'avsc';
 
 const CTOR = 'constructor';
 const ERRORS = {
@@ -6,9 +6,11 @@ const ERRORS = {
   fields: 'No fields found, did you forget the "@AvroField" decorator',
 };
 
+type FieldTypes = string | string[] | { type: 'array'; items: Schema };
+
 export class Avro {
   static schema: Type;
-  static fields: { name: string; type: string | string[] }[];
+  static fields: { name: string; type: FieldTypes }[];
 
   // eslint-disable-next-line @typescript-eslint/no-useless-constructor
   constructor(
@@ -42,7 +44,7 @@ export function AvroSchema({ name, namespace }: { name?: string; namespace?: str
   };
 }
 
-export function AvroField(type: string | string[]) {
+export function AvroField(type: FieldTypes) {
   return function (record: Avro, name: string) {
     const ctor = record[CTOR] as typeof Avro;
     if (!ctor.fields) ctor.fields = [];

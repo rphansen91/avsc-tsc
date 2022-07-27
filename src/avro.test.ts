@@ -11,8 +11,8 @@ describe('Avro', () => {
 
     constructor(base?: any) {
       super();
-      this.number = base.number || null;
-      this.hash = base.hash || null;
+      this.number = base?.number ?? null;
+      this.hash = base?.hash ?? null;
     }
 
     helper() {
@@ -26,6 +26,48 @@ describe('Avro', () => {
       { name: 'number', type: ['long', 'null'] },
       { name: 'hash', type: ['string', 'null'] },
     ]);
+  });
+
+  it('Should extract nested fields', async () => {
+    @AvroSchema({ namespace: 'evm' })
+    class Log extends Avro {
+      @AvroField(['string', 'null'])
+      address: string;
+
+      @AvroField(['string', 'null'])
+      topic0: string;
+
+      constructor(base?: any) {
+        super();
+        this.address = base?.address ?? null;
+        this.topic0 = base?.topic0 ?? null;
+      }
+    }
+
+    @AvroSchema()
+    class Transaction extends Avro {
+      @AvroField({ type: 'array', items: Log.schema })
+      logs: Log[];
+
+      constructor(base?: any) {
+        super();
+        this.logs = base?.logs ?? null;
+      }
+    }
+
+    expect(Transaction.fields).toEqual([{ name: 'logs', type: { type: 'array', items: Log.schema } }]);
+
+    const tx = new Transaction();
+    const log = new Log();
+    log.address = 'address';
+    log.topic0 = 'topic0';
+    tx.logs = [log];
+
+    const encoded = await tx.encode();
+    expect(encoded.toString('utf8')).toMatchSnapshot();
+
+    const decoded = await Transaction.decode<Transaction>(encoded);
+    expect(decoded).toEqual(tx);
   });
 
   it('Should encode', async () => {
