@@ -33,13 +33,18 @@ export class Avro {
     try {
       return ctor.schema.toBuffer(this);
     } catch (err) {
-      const fields = (ctor as any)?.['schema']?.['_fieldsByName'] ?? {};
-      for (const field in fields) {
-        if (typeof (this as any)[field] === 'undefined') {
-          throw new Error(`${ctor.name} has no value defined for "${field}"`);
-        }
-      }
+      this.verifyRecord();
       throw err;
+    }
+  }
+
+  verifyRecord() {
+    const ctor = this[CTOR] as typeof Avro;
+    const fields = (ctor.schema as any)?._fieldsByName ?? {};
+    for (const field in fields) {
+      if (typeof (this as any)[field] === 'undefined') {
+        throw new Error(`${ctor.name} has no value defined for "${field}"`);
+      }
     }
   }
 }
