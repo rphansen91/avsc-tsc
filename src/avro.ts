@@ -6,7 +6,7 @@ const ERRORS = {
   fields: 'No fields found, did you forget the "@AvroField" decorator',
 };
 
-type FieldTypes = string | string[] | { type: 'array'; items: Schema };
+type FieldTypes = string | string[] | Schema | { type: 'array'; items: Schema };
 type Field = { name: string; type: FieldTypes; default?: any };
 
 export class Avro {

@@ -28,6 +28,26 @@ describe('Avro', () => {
     ]);
   });
 
+  it('Should extract single nested field', async () => {
+    @AvroSchema({ namespace: 'evm' })
+    class SyncBlock extends Avro {
+      @AvroField(Block.schema)
+      block: Block;
+
+      constructor(base?: any) {
+        super();
+        this.block = new Block(base?.block);
+      }
+    }
+
+    const sync = new SyncBlock({
+      block: { number: 1, hash: '0x0101' },
+    });
+    const encoded = await sync.encode();
+    const decoded = await SyncBlock.decode(encoded);
+    expect(decoded).toEqual(sync);
+  });
+
   it('Should extract nested fields', async () => {
     @AvroSchema({ namespace: 'evm' })
     class Log extends Avro {

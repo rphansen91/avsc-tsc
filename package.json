@@ -1,6 +1,6 @@
 {
   "name": "avsc-tsc",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Utility library to encode and decode typescript classes in Avro format",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
