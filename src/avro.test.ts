@@ -119,4 +119,37 @@ describe('Avro', () => {
     class Block extends Avro {}
     await expect(() => new Block().encode()).rejects.toThrowError('No fields found, did you forget the "@AvroField" decorator');
   });
+
+  it('Should support enum', async () => {
+    enum Addon {
+      addon1 = 'addon1',
+      addon2 = 'addon2',
+    }
+
+    @AvroSchema({ namespace: 'Usage', name: 'AddonUsage' })
+    class AddonUsageType extends Avro {
+      @AvroField({
+        type: 'enum',
+        name: 'AddonEnum',
+        symbols: Object.values(Addon),
+      })
+      addon: Addon;
+
+      @AvroField('int')
+      quantity: number;
+
+      constructor({ addon = Addon.addon1, quantity = 0 } = {}) {
+        super();
+        this.addon = addon;
+        this.quantity = quantity;
+      }
+    }
+
+    const usage = new AddonUsageType();
+    usage.addon = Addon.addon1;
+    usage.quantity = 10;
+    const encoded = await usage.encode();
+    const decoded = await AddonUsageType.decode(encoded);
+    expect(decoded).toEqual(usage);
+  });
 });
