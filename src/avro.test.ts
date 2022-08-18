@@ -9,10 +9,10 @@ describe('Avro', () => {
     @AvroField(['string', 'null'])
     hash: string;
 
-    constructor(base?: any) {
+    constructor({ number, hash }: any) {
       super();
-      this.number = base?.number;
-      this.hash = base?.hash;
+      this.number = number;
+      this.hash = hash;
     }
 
     helper() {

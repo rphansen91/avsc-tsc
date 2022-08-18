@@ -24,13 +24,18 @@ class Block extends Avro {
 
   @AvroField(['string', 'null'])
   hash: number
+
+  constructor({ number = 0, hash = '' } = {}) {
+    this.number
+    this.hash
+  }
 }
 ```
 
 - Encoding
 
 ```js
-const block = new Block()
+const block = new Block({ number: 10, hash: '0x0' })
 const encoded = await block.encode()
 ```
 
@@ -38,4 +43,6 @@ const encoded = await block.encode()
 
 ```js
 const decoded = await Block.decode<Block>(encoded)
+decoded.number === 10 // true
+decoded.hash === '0x0' // true
 ```
